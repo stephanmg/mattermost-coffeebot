@@ -278,7 +278,7 @@ def send_pairing_call(driver, team_name, channel_name):
     """
     team_id = driver.teams.get_team_by_name(team_name)["id"]
     channel_id = driver.channels.get_channel_by_name(team_id, channel_name)["id"]
-    message = f"Wanna go on a coffee / walk- date? React to this message with :+1: then you will be matched"
+    message = f"Wanna go on a coffee / walk date? React to this message with :+1: then you will be matched"
     driver.posts.create_post({
         "channel_id": channel_id,
         "message": message

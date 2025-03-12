@@ -219,3 +219,68 @@ def message_pairs(driver, pairs):
     """
     for pair in pairs:
         message_pair(driver, pair)
+
+
+
+def get_responsive_members(driver, team_name, channel_name):
+    """
+    Get responsive members who reacted with thumbs up to the pairing call
+    """
+    team_id = driver.teams.get_team_by_name(team_name)["id"]
+    channel_id = driver.channels.get_channel_by_name(team_id, channel_name)["id"]
+
+    posts = driver.posts.get_posts_for_channel(channel_id, params={"per_page": 1}) # last message only
+    recent_post_id = max(posts["posts"], key=lambda post_id: posts["posts"][post_id]["create_at"])
+    reactions = driver.client.get(f"/posts/{recent_post_id}/reactions")
+
+    thumbs_up_users = set()
+    emoji_name = "+1"
+    for reaction in reactions:
+        if reaction["emoji_name"] == emoji_name:
+            thumbs_up_users.add(reaction["user_id"])
+
+    return list(thumbs_up_users)
+
+
+def get_user_handles(driver, team_name, channel_name, users):
+    """
+    Get all user handles from user ids
+    """
+    return [get_user_handle(driver, team_name, channel_name, user_id) for user_id in users]
+
+
+def get_user_handle(driver, team_name, channel_name, user_id):
+    """
+    Get a specific user handle from a user id
+    """
+    return driver.users.get_user(user_id)["username"]
+
+
+def message_pairings(driver, team_name, channel_name, pairs):
+    """
+    One message for each paired partners into the channel
+    """
+    team_id = driver.teams.get_team_by_name(team_name)["id"]
+    channel_id = driver.channels.get_channel_by_name(team_id, channel_name)["id"]
+    for pair in pairs:
+        pairA = get_user_handle(driver, team_name, channel_name, pair[0])
+        pairB = get_user_handle(driver, team_name, channel_name, pair[1])
+        message = f"Paired users @{pairA} with @{pairB}"
+        driver.posts.create_post({
+            "channel_id": channel_id,
+            "message": message
+            })
+
+
+def send_pairing_call(driver, team_name, channel_name):
+    """
+    Send call for pairing
+    """
+    team_id = driver.teams.get_team_by_name(team_name)["id"]
+    channel_id = driver.channels.get_channel_by_name(team_id, channel_name)["id"]
+    message = f"Wanna go on a coffee / walk- date? React to this message with :+1: then you will be matched"
+    driver.posts.create_post({
+        "channel_id": channel_id,
+        "message": message
+        })
+

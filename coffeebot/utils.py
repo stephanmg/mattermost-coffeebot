@@ -162,6 +162,31 @@ def get_pair(members):
 
     return (member, paired_member)
 
+def get_pairs_alt(members):
+    print("members:")
+    random.shuffle(members)
+
+    pairs = []
+    while len(members) > 1:
+        pairs.append(get_pair(members))
+
+    # Reset the is_paired flag for each user in preparation for the next time
+    # users get paired
+    sql = text("""
+        UPDATE users
+        SET is_paired = 0
+    """)
+
+    session.execute(sql)
+    session.commit()
+
+    single_person = set(members)-set(pairs)
+
+    return pairs, single_person
+
+
+
+
 
 def get_pairs(members):
     """
@@ -230,6 +255,7 @@ def get_responsive_members(driver, team_name, channel_name):
     channel_id = driver.channels.get_channel_by_name(team_id, channel_name)["id"]
 
     posts = driver.posts.get_posts_for_channel(channel_id, params={"per_page": 1}) # last message only
+    print(posts)
     recent_post_id = max(posts["posts"], key=lambda post_id: posts["posts"][post_id]["create_at"])
     reactions = driver.client.get(f"/posts/{recent_post_id}/reactions")
 
@@ -247,7 +273,6 @@ def get_user_handles(driver, team_name, channel_name, users):
     Get all user handles from user ids
     """
     return [get_user_handle(driver, team_name, channel_name, user_id) for user_id in users]
-
 
 def get_user_handle(driver, team_name, channel_name, user_id):
     """
@@ -271,6 +296,28 @@ def message_pairings(driver, team_name, channel_name, pairs):
             "message": message
             })
 
+def message_pairings_alt(driver, team_name, channel_name, pairs, single):
+    """
+    One message for each paired partners into the channel
+    """
+    team_id = driver.teams.get_team_by_name(team_name)["id"]
+    channel_id = driver.channels.get_channel_by_name(team_id, channel_name)["id"]
+    for index, pair in enumerate(pairs):
+        pairA = get_user_handle(driver, team_name, channel_name, pair[0])
+        pairB = get_user_handle(driver, team_name, channel_name, pair[1])
+        pairC = get_user_handle(driver, team_name, channel_name, list(single)[0])
+        message = f"Paired users @{pairA} with @{pairB}"
+        if single:
+            if random.randint(0, len(pairs)-1) == index:
+                message = f"Paired users @{pairA} with @{pairB} (User @{pairC} feel free to join them!)"
+        
+        driver.posts.create_post({
+            "channel_id": channel_id,
+            "message": message
+            })
+
+
+
 
 def send_pairing_call(driver, team_name, channel_name):
     """
@@ -278,9 +325,10 @@ def send_pairing_call(driver, team_name, channel_name):
     """
     team_id = driver.teams.get_team_by_name(team_name)["id"]
     channel_id = driver.channels.get_channel_by_name(team_id, channel_name)["id"]
-    message = f"Wanna go on a coffee / walk date? React to this message with :+1: then you will be matched"
+    message = f"Wanna go on a coffee / walk- date? React to this message with :+1: then you will be matched"
     driver.posts.create_post({
         "channel_id": channel_id,
         "message": message
         })
+
 

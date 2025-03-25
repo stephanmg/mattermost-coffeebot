@@ -169,7 +169,18 @@ def get_pair(members):
 
 
 def get_pairs_alt(members):
-    print("members:")
+    """
+    Pair up all users from a list of members depending on the frequencies of
+    each user's previous pairings.
+    Returns a list of tuples of user IDs (Pairings).
+    Return the remainder person in uneven number of members reacting in the
+    pairing process, and assign them to a random pairing (without memory)
+    """
+    # In the case of an odd number of members, the user that is sequentially
+    # last in the input list will have a lower chance of getting paired. In
+    # order to make it fair, we shuffle the list so that everyone has an equal
+    # chance of not getting paired
+
     random.shuffle(members)
 
     pairs = []
@@ -306,7 +317,9 @@ def message_pairings(driver, team_name, channel_name, pairs):
 
 def message_pairings_alt(driver, team_name, channel_name, pairs, single):
     """
-    One message for each paired partners into the channel
+    One message for each paired partners into the channel and pair the
+    remainder person in uneven number of members reacting for pairing
+    with a random pairing
     """
     team_id = driver.teams.get_team_by_name(team_name)["id"]
     channel_id = driver.channels.get_channel_by_name(team_id, channel_name)["id"]

@@ -6,16 +6,16 @@ from coffeebot import config, utils
 def main():
     print("Creating Mattermost Driver...")
     driver_options = {
-        'url': config.URL,
-        'login_id': config.USERNAME,
-        'password': config.PASSWORD,
-        'port': config.PORT
+        "url": config.URL,
+        "login_id": config.USERNAME,
+        "password": config.PASSWORD,
+        "port": config.PORT,
     }
     driver = Driver(driver_options)
 
     print("Authenticating...")
     driver.login()
-    driver.users.get_user('me')
+    driver.users.get_user("me")
     print("Successfully authenticated.")
 
     print("Retrieving Coffee Buddies participants...")
@@ -38,5 +38,5 @@ def main():
     print("Successfully messaged paired Coffee Buddies participants.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

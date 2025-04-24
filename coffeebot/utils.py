@@ -326,7 +326,10 @@ def message_pairings_alt(driver, team_name, channel_name, pairs, single):
     for index, pair in enumerate(pairs):
         pairA = get_user_handle(driver, team_name, channel_name, pair[0])
         pairB = get_user_handle(driver, team_name, channel_name, pair[1])
-        pairC = get_user_handle(driver, team_name, channel_name, list(single)[0])
+        pairC = None
+        if single:
+            pairC = get_user_handle(driver, team_name, channel_name, list(single)[0])
+        
         message = f"Paired users @{pairA} with @{pairB}"
         if single:
             if random.randint(0, len(pairs) - 1) == index:

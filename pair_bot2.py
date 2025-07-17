@@ -26,22 +26,17 @@ def main():
     channel_name = config.CHANNEL_NAME
 
     # Either send pairing call ...
-    if pairing_call:
-        utils.send_pairing_call(driver, team_name, channel_name)
-    else:  
-        try:
-            # all members who upvoted with thumbs up
-            members = utils.get_responsive_members(driver, team_name, channel_name)
+    members = utils.get_responsive_members(driver, team_name, channel_name)
 
-            # create pairings
-            utils.create_users(members)
-            utils.create_pairs(members)
-            pairs, single = utils.get_pairs_alt(members)
+    # create pairings
+    utils.create_users(members)
+    utils.create_pairs(members)
 
-            # finally for each pair a message in the channel
-            utils.message_pairings_alt(driver, team_name, channel_name, pairs, single)
-        except TypeError:
-            utils.message(driver, team_name, channel_name)
+    pairs, single = utils.get_pairs_alt(members)
+
+    # finally for each pair a message in the channel
+    utils.message_pairings_alt(driver, team_name, channel_name, pairs, single)
 
 if __name__ == '__main__':
     main()
+

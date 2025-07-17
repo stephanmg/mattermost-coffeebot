@@ -186,9 +186,11 @@ def _generate_pairs(members, *, alt=False):
     return pairs
 
 def get_pairs_alt(members):
+    """ Get pairs with single reminder which gets assigned to any group """
     return _get_pairs(members, alt=True)
 
 def get_pairs(members):
+    """ Get only pairs for even number of participating members """
     return _get_pairs(members)
 
 
@@ -220,22 +222,47 @@ def message_pairs(driver, pairs):
     for pair in pairs:
         message_pair(driver, pair)
 
+def get_responsive_members_alt(driver, team_name, channel_name):
+    """
+    Get responsive members who reacted with thumbs up to the pairing call (not the last message in channel assumed)
+    """
+
+    team_id = driver.teams.get_team_by_name(team_name)["id"]
+    channel_id = driver.channels.get_channel_by_name(team_id, channel_name)["id"]
+
+    page = 0
+    per_page = 50
+
+    while True:
+        resp = driver.posts.get_posts_for_channel(
+            channel_id,
+            params={"per_page": per_page, "page": page}
+        )
+        order = resp.get("order", [])
+        posts = resp.get("posts", {})
+
+        if not order:
+            break
+
+        for post_id in order:
+            msg = posts[post_id].get("message", "")
+            if "Wanna go" in msg:
+                reactions = driver.client.get(f"/posts/{post_id}/reactions")
+                return [r["user_id"] for r in reactions if r.get("emoji_name") == "+1"]
+
+        page += 1
+
+    return []
 
 
 def get_responsive_members(driver, team_name, channel_name):
     """
-    Get responsive members who reacted with thumbs up to the pairing call
+    Get responsive members who reacted with thumbs up to the pairing call (last message assumed)
     """
     team_id = driver.teams.get_team_by_name(team_name)["id"]
     channel_id = driver.channels.get_channel_by_name(team_id, channel_name)["id"]
 
     posts = driver.posts.get_posts_for_channel(channel_id, params={"per_page": 1}) # last message only
-    # for debugging
-    #posts_resp = posts
-    #ordered = posts_resp["order"]  # e.g. ["id0", "id1", ..., "id5"]
-    #sixth_last_id = ordered[-1]
-    #sixth_last = posts_resp["posts"][sixth_last_id]
-    #recent_post_id = sixth_last_id
 
     recent_post_id = max(posts["posts"], key=lambda post_id: posts["posts"][post_id]["create_at"])
     reactions = driver.client.get(f"/posts/{recent_post_id}/reactions")

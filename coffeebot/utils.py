@@ -162,8 +162,7 @@ def get_pair(members):
 
     return (member, paired_member)
 
-def get_pairs_alt(members):
-    print("members:")
+def _generate_pairs(members, *, alt=False):
     random.shuffle(members)
 
     pairs = []
@@ -180,41 +179,17 @@ def get_pairs_alt(members):
     session.execute(sql)
     session.commit()
 
-    single_person = set(members)-set(pairs)
-
-    return pairs, single_person
-
-
-
-
-
-def get_pairs(members):
-    """
-    Pair up all users from a list of members depending on the frequencies of
-    each user's previous pairings.
-    Returns a list of tuples of user IDs.
-    """
-    # In the case of an odd number of members, the user that is sequentially
-    # last in the input list will have a lower chance of getting paired. In
-    # order to make it fair, we shuffle the list so that everyone has an equal
-    # chance of not getting paired
-    random.shuffle(members)
-
-    pairs = []
-    while len(members) > 1:
-        pairs.append(get_pair(members))
-
-    # Reset the is_paired flag for each user in preparation for the next time
-    # users get paired
-    sql = text("""
-        UPDATE users
-        SET is_paired = 0
-    """)
-
-    session.execute(sql)
-    session.commit()
+    if alt:
+        single_person = set(members)-set(pairs)
+        return pairs, single_person
 
     return pairs
+
+def get_pairs_alt(members):
+    return _get_pairs(members, alt=True)
+
+def get_pairs(members):
+    return _get_pairs(members)
 
 
 def message_pair(driver, pair):
